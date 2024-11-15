@@ -4,85 +4,40 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TaskMaster</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 10px;
-      width: 300px;
-      margin: 0;
-    }
-    .task-item {
-      background-color: #f9f9f9;
-      padding: 10px;
-      margin: 5px 0;
-      border-radius: 5px;
-      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-    }
-    button {
-      margin: 5px;
-      padding: 5px 10px;
-      border: none;
-      border-radius: 3px;
-      cursor: pointer;
-    }
-    .completed {
-  color: green;
-  font-weight: bold;
-}
-
-.not-completed {
-  color: red;
-  font-weight: bold;
-}
-
-    .complete-btn {
-      background-color: #28a745;
-      color: white;
-    }
-    .edit-btn {
-      background-color: #ffc107;
-      color: white;
-    }
-    .delete-btn {
-      background-color: #dc3545;
-      color: white;
-    }
-    #taskList {
-      margin-top: 20px;
-    }
-  </style>
+  <link rel="stylesheet" href="popup.css"> <!-- Link to external CSS file -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- Font Awesome CDN -->
 </head>
 <body>
 
   <h2>TaskMaster</h2>
-
+  <div id="message" style="display: none; color: red; font-weight: bold;"></div>
   <!-- Login Section -->
   <div id="loginSection">
-    <button id="login">Login</button>
+    <button id="login"><i class="fas fa-sign-in-alt"></i> Login</button>
+    <button id="logout" style="display: none;"><i class="fas fa-sign-out-alt"></i> Logout</button> <!-- Logout button -->
   </div>
 
   <!-- Add Task Form -->
-<form id="add-task-form">
-  <input type="text" id="task-title" placeholder="Task Title">
-  <textarea id="task-desc" placeholder="Task Description"></textarea>
-  <input type="number" id="task-difficulty" placeholder="Difficulty (1-5)">
-  <input type="number" id="task-duration" placeholder="Estimated Duration (minutes)">
-  <button type="submit" id="submit-btn">Add Task</button>
-</form>
+  <form id="add-task-form">
+    <input type="text" id="task-title" placeholder="Task Title" required>
+    <textarea id="task-desc" placeholder="Task Description" required></textarea>
+    <input type="number" id="task-difficulty" placeholder="Difficulty (1-5)" min="1" max="5" required>
+    <input type="number" id="task-duration" placeholder="Estimated Duration (minutes)" min="1" required>
+    <button type="submit" id="submit-btn"><i class="fas fa-plus-circle"></i> Add Task</button> <!-- Add task button with icon -->
+  </form>
 
-<!-- Edit Task Form (Hidden initially) -->
-<form id="edit-task-form" style="display: none;">
-  <input type="text" id="edit-task-title" placeholder="Task Title">
-  <textarea id="edit-task-desc" placeholder="Task Description"></textarea>
-  <input type="number" id="edit-task-difficulty" placeholder="Difficulty (1-5)">
-  <input type="number" id="edit-task-duration" placeholder="Estimated Duration (minutes)">
-  <button type="submit" id="edit-submit-btn">Update Task</button>
-  <button type="button" id="cancel-edit-btn">Cancel</button>
-</form>
-
+  <!-- Edit Task Form (Hidden initially) -->
+  <form id="edit-task-form" style="display: none;">
+    <input type="text" id="edit-task-title" placeholder="Task Title" required>
+    <textarea id="edit-task-desc" placeholder="Task Description" required></textarea>
+    <input type="number" id="edit-task-difficulty" placeholder="Difficulty (1-5)" min="1" max="5" required>
+    <input type="number" id="edit-task-duration" placeholder="Estimated Duration (minutes)" min="1" required>
+    <button type="submit" id="edit-submit-btn"><i class="fas fa-edit"></i> Update Task</button> <!-- Edit task button with icon -->
+    <button type="button" id="cancel-edit-btn"><i class="fas fa-times-circle"></i> Cancel</button> <!-- Cancel edit button with icon -->
+  </form>
 
   <!-- Task List -->
-  <div id="taskList">Loading tasks...</div>
+  <div id="taskList">Please login</div>
 
   <script src="popup.js"></script>
 </body>

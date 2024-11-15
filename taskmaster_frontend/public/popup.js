@@ -1,4 +1,5 @@
 // Function to log in and store token
+// Function to log in and store token
 function login(username, password) {
   fetch('http://localhost:8000/api/token/', {
     method: 'POST',
@@ -13,6 +14,8 @@ function login(username, password) {
         chrome.storage.local.set({ 'access_token': data.access, 'refresh_token': data.refresh }, () => {
           console.log('Token saved successfully.');
           fetchTasks(); // Fetch tasks immediately after logging in
+          updateLoginUI(true); // Update UI to show logout button
+          hideMessage();
         });
       } else {
         console.error('Login failed:', data);
@@ -31,9 +34,11 @@ function fetchTasks() {
     const token = result.access_token;
     if (!token) {
       console.error('No access token found. Please log in.');
+      clearTaskList();
+      updateLoginUI(false);
       return;
     }
-    document.getElementById('taskList').innerHTML = 'Loading tasks...'; // Add loading text
+    document.getElementById('taskList').innerHTML = 'Loading tasks...';
     fetch('http://localhost:8000/api/tasks/', {
       method: 'GET',
       headers: {
@@ -63,6 +68,13 @@ function fetchTasks() {
         document.getElementById('taskList').innerHTML = 'Error fetching tasks. Please try again later.';
       });
   });
+}
+
+function clearTaskList() {
+  const taskListElement = document.getElementById('task-list');
+  if (taskListElement) {
+    taskListElement.innerHTML = ''; // Clear the list
+  }
 }
 
 // Function to refresh the token
@@ -102,6 +114,18 @@ function refreshToken() {
   });
 }
 
+// Function to map numeric difficulty to text
+function getDifficultyDetails(difficulty) {
+  const difficultyMap = {
+    1: { label: 'Easy', color: '#28a745' }, // Green
+    2: { label: 'Medium', color: '#ffc107' }, // Yellow
+    3: { label: 'Hard', color: '#ff6f00' }, // Orange
+    4: { label: 'Very Hard', color: '#dc3545' }, // Red
+    5: { label: 'Extreme', color: '#800080' } // Purple
+  };
+  return difficultyMap[difficulty] || { label: 'Unknown', color: '#6c757d' }; // Default if out of range
+}
+
 // Function to display tasks
 function displayTasks(tasks) {
   const taskList = document.getElementById('taskList');
@@ -116,14 +140,29 @@ function displayTasks(tasks) {
     const completedClass = task.completed ? 'completed' : 'not-completed';
 
     taskItem.innerHTML = `
-      <p><strong>${task.title}</strong> - Difficulty: ${task.difficulty}</p>
-      <p>${task.description}</p>
-      <p>Estimated Duration: ${task.estimated_duration} mins</p>
-      <p>Status: <span class="${completedClass}">${completedLabel}</span></p> <!-- Completed status -->
-      <button class="complete-btn" data-id="${task.id}">${task.completed ? 'Mark Incomplete' : 'Mark Complete'}</button>
-      <button class="edit-btn" data-id="${task.id}">Edit</button>
-      <button class="delete-btn" data-id="${task.id}">Delete</button>
-    `;
+  <p><strong>${task.title}</strong> - Difficulty: 
+    <span class="difficulty" style="color: ${getDifficultyDetails(task.difficulty).color};">
+      <strong>${getDifficultyDetails(task.difficulty).label}</strong>
+    </span>
+  </p>
+  <p>${task.description}</p>
+  <p>Estimated Duration: ${task.estimated_duration} mins</p>
+  <p>Status: <span class="${completedClass}">${completedLabel}</span></p> <!-- Completed status -->
+
+  <!-- Container for the buttons to be aligned in the same line -->
+  <div class="task-buttons">
+    <button class="complete-btn ${task.completed ? 'completed-btn' : ''}" data-id="${task.id}">
+      <i class="fas fa-check-circle"></i>
+    </button>
+    <button class="edit-btn" data-id="${task.id}">
+      <i class="fas fa-edit"></i>
+    </button>
+    <button class="delete-btn" data-id="${task.id}">
+      <i class="fas fa-trash-alt"></i>
+    </button>
+  </div>
+`;
+
     taskList.appendChild(taskItem);
 
     // Event listeners for task actions
@@ -140,6 +179,7 @@ function toggleTaskCompletion(taskId) {
     const token = result.access_token;
     if (!token) {
       console.error('No token found!');
+      showMessage('Login, please');
       return;
     }
     fetch(`http://localhost:8000/api/tasks/${taskId}/toggle/`, {  // Update the URL to match Django pattern
@@ -162,6 +202,7 @@ function toggleTaskCompletion(taskId) {
         } else {
           console.log('Task updated:', data);
           fetchTasks(); // Refresh the tasks after completion
+          hideMessage();
         }
       })
       .catch(error => {
@@ -209,6 +250,7 @@ function updateTask(taskId) {
     const token = result.access_token;
     if (!token) {
       console.error('No token found!');
+      showMessage('Login, please');
       return;
     }
     fetch(`http://localhost:8000/api/tasks/${taskId}/`, {
@@ -239,6 +281,7 @@ function deleteTask(taskId) {
     const token = result.access_token;
     if (!token) {
       console.error('No token found!');
+      showMessage('Login, please');
       return;
     }
 
@@ -285,6 +328,7 @@ function addTask() {
 
     if (!token) {
       console.error('No token found!');
+      showMessage('Login, please');
       return;
     }
 
@@ -308,6 +352,11 @@ function addTask() {
         console.log('Task added:', data);
         if (data.id) {
           fetchTasks(); // Refresh the tasks after adding
+          // Clear the form fields after submission
+          document.getElementById('task-title').value = '';
+          document.getElementById('task-desc').value = '';
+          document.getElementById('task-difficulty').value = '';
+          document.getElementById('task-duration').value = '';
         }
       })
       .catch(error => {
@@ -316,12 +365,54 @@ function addTask() {
   });
 }
 
+// Function to update the login UI
+function updateLoginUI(isLoggedIn) {
+  const loginButton = document.getElementById('login');
+  const logoutButton = document.getElementById('logout');
+
+  if (isLoggedIn) {
+    loginButton.style.display = 'none';
+    logoutButton.style.display = 'inline-block';
+  } else {
+    loginButton.style.display = 'inline-block';
+    logoutButton.style.display = 'none';
+  }
+}
+
+// Function to log out
+function logout() {
+  chrome.storage.local.remove(['access_token', 'refresh_token'], () => {
+    console.log('Logged out');
+    clearTaskList();
+    updateLoginUI(false); // Update UI to show login button
+    fetchTasks();
+  });
+}
+
+function showMessage(message) {
+  const messageElement = document.getElementById('message');
+  if (messageElement) {
+    messageElement.textContent = message; // Set the message text
+    messageElement.style.display = 'block'; // Make it visible
+  }
+}
+
+function hideMessage() {
+  const messageElement = document.getElementById('message');
+  if (messageElement) {
+    messageElement.style.display = 'none'; // Hide the message
+    messageElement.textContent = ''; // Clear the message text
+  }
+}
+
+
 // Event listeners
 document.getElementById('login').addEventListener('click', () => {
   const username = prompt("Enter username:");
   const password = prompt("Enter password:");
   login(username, password);
 });
+document.getElementById('logout').addEventListener('click', logout);
 
 document.getElementById('add-task-form').addEventListener('submit', (event) => {
   event.preventDefault(); // Prevent the form from reloading the page
@@ -329,6 +420,30 @@ document.getElementById('add-task-form').addEventListener('submit', (event) => {
 });
 
 // Fetch tasks when the popup opens
-document.addEventListener('DOMContentLoaded', () => {
+/*document.addEventListener('DOMContentLoaded', () => {
   fetchTasks();
+});*/
+document.addEventListener('DOMContentLoaded', function() {
+  chrome.storage.local.get('access_token', (result) => {
+    if (result.access_token) {
+      console.log('User is logged in');
+      showLoggedInState();
+      fetchTasks();
+    } else {
+      console.log('No token found, please login');
+      showLoggedOutState();
+      clearTaskList();
+    }
+  });
 });
+// Function to show logged-in state (display logout button)
+function showLoggedInState() {
+  document.getElementById('login').style.display = 'none'; // Hide login button
+  document.getElementById('logout').style.display = 'block'; // Show logout button
+}
+
+// Function to show logged-out state (display login button)
+function showLoggedOutState() {
+  document.getElementById('login').style.display = 'block'; // Show login button
+  document.getElementById('logout').style.display = 'none'; // Hide logout button
+}
