@@ -11,11 +11,28 @@
 
   <h2>TaskMaster</h2>
   <div id="message" style="display: none; color: red; font-weight: bold;"></div>
+  <!-- Display logged-in username -->
+  <div id="user-info" style="display: none;">
+    <strong>Logged in as: <span id="username-display"></span></strong>
+  </div>
+
   <!-- Login Section -->
   <div id="loginSection">
     <button id="login"><i class="fas fa-sign-in-alt"></i> Login</button>
     <button id="logout" style="display: none;"><i class="fas fa-sign-out-alt"></i> Logout</button> <!-- Logout button -->
   </div>
+
+  <!-- Add Sign Up Button -->
+<button id="signup"><i class="fas fa-user-plus"></i> Sign Up</button>
+
+<!-- Sign Up Form (Hidden initially) -->
+<div id="signUpForm" style="display: none;">
+  <input type="text" id="signup-username" placeholder="Enter username" required>
+  <input type="email" id="signup-email" placeholder="Enter email" required>
+  <input type="password" id="signup-password" placeholder="Enter password" required>
+  <button id="submit-signup">Sign Up</button>
+  <button id="cancel-signup">Cancel</button>
+</div>
 
   <!-- Add Task Form -->
   <form id="add-task-form">
@@ -38,7 +55,33 @@
 
   <!-- Task List -->
   <div id="taskList">Please login</div>
+  <template id="task-template">
+    <div class="task-item">
+      <p>
+        <strong class="task-title"></strong> - Difficulty: 
+        <span class="difficulty"></span>
+      </p>
+      <p class="task-description"></p>
+      <p class="task-duration"></p>
+      <p>
+        Status: <span class="task-status"></span>
+      </p>
+      <div class="task-buttons">
+        <button class="complete-btn">
+          <i class="fas fa-check-circle"></i>
+        </button>
+        <button class="edit-btn">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="delete-btn">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      </div>
+    </div>
+  </template>
+  
 
   <script src="popup.js"></script>
+  <script id="signup-script" src="signup.js" defer></script>
 </body>
 </html>

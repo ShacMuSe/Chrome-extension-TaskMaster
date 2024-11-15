@@ -1,5 +1,4 @@
 // Function to log in and store token
-// Function to log in and store token
 function login(username, password) {
   fetch('http://localhost:8000/api/token/', {
     method: 'POST',
@@ -11,7 +10,7 @@ function login(username, password) {
     .then(response => response.json())
     .then(data => {
       if (data.access) {
-        chrome.storage.local.set({ 'access_token': data.access, 'refresh_token': data.refresh }, () => {
+        chrome.storage.local.set({ 'access_token': data.access, 'refresh_token': data.refresh, 'username': username }, () => {
           console.log('Token saved successfully.');
           fetchTasks(); // Fetch tasks immediately after logging in
           updateLoginUI(true); // Update UI to show logout button
@@ -27,6 +26,17 @@ function login(username, password) {
       alert('Error logging in. Please try again.');
     });
 }
+
+// Function to log out
+function logout() {
+  chrome.storage.local.remove(['access_token', 'refresh_token'], () => {
+    console.log('Logged out');
+    clearTaskList();
+    updateLoginUI(false); // Update UI to show login button
+    fetchTasks();
+  });
+}
+
 
 // Function to fetch tasks
 function fetchTasks() {
@@ -131,47 +141,37 @@ function displayTasks(tasks) {
   const taskList = document.getElementById('taskList');
   taskList.innerHTML = ''; // Clear the task list
 
+  const taskTemplate = document.getElementById('task-template'); // Get the template
+
   tasks.forEach(task => {
-    const taskItem = document.createElement('div');
-    taskItem.classList.add('task-item');
+    // Clone the template
+    const taskItem = taskTemplate.content.cloneNode(true);
 
-    // Check the completed status and set the appropriate label or class
-    const completedLabel = task.completed ? 'Completed' : 'Not Completed';
-    const completedClass = task.completed ? 'completed' : 'not-completed';
+    // Populate the task details
+    taskItem.querySelector('.task-title').textContent = task.title;
+    taskItem.querySelector('.difficulty').textContent = getDifficultyDetails(task.difficulty).label;
+    taskItem.querySelector('.difficulty').style.color = getDifficultyDetails(task.difficulty).color;
+    taskItem.querySelector('.task-description').textContent = task.description;
+    taskItem.querySelector('.task-duration').textContent = `Estimated Duration: ${task.estimated_duration} mins`;
 
-    taskItem.innerHTML = `
-  <p><strong>${task.title}</strong> - Difficulty: 
-    <span class="difficulty" style="color: ${getDifficultyDetails(task.difficulty).color};">
-      <strong>${getDifficultyDetails(task.difficulty).label}</strong>
-    </span>
-  </p>
-  <p>${task.description}</p>
-  <p>Estimated Duration: ${task.estimated_duration} mins</p>
-  <p>Status: <span class="${completedClass}">${completedLabel}</span></p> <!-- Completed status -->
+    const statusElement = taskItem.querySelector('.task-status');
+    statusElement.textContent = task.completed ? 'Completed' : 'Not Completed';
+    statusElement.className = `task-status ${task.completed ? 'completed' : 'not-completed'}`;
 
-  <!-- Container for the buttons to be aligned in the same line -->
-  <div class="task-buttons">
-    <button class="complete-btn ${task.completed ? 'completed-btn' : ''}" data-id="${task.id}">
-      <i class="fas fa-check-circle"></i>
-    </button>
-    <button class="edit-btn" data-id="${task.id}">
-      <i class="fas fa-edit"></i>
-    </button>
-    <button class="delete-btn" data-id="${task.id}">
-      <i class="fas fa-trash-alt"></i>
-    </button>
-  </div>
-`;
+    // Add data attributes to buttons
+    taskItem.querySelector('.complete-btn').dataset.id = task.id;
+    taskItem.querySelector('.edit-btn').dataset.id = task.id;
+    taskItem.querySelector('.delete-btn').dataset.id = task.id;
 
-    taskList.appendChild(taskItem);
-
-    // Event listeners for task actions
+    // Add event listeners
     taskItem.querySelector('.complete-btn').addEventListener('click', () => toggleTaskCompletion(task.id));
     taskItem.querySelector('.edit-btn').addEventListener('click', () => editTask(task));
     taskItem.querySelector('.delete-btn').addEventListener('click', () => deleteTask(task.id));
+
+    // Append the populated task to the task list
+    taskList.appendChild(taskItem);
   });
 }
-
 
 // Function to toggle task completion
 function toggleTaskCompletion(taskId) {
@@ -182,7 +182,7 @@ function toggleTaskCompletion(taskId) {
       showMessage('Login, please');
       return;
     }
-    fetch(`http://localhost:8000/api/tasks/${taskId}/toggle/`, {  // Update the URL to match Django pattern
+    fetch(`http://localhost:8000/api/tasks/${taskId}/toggle/`, {  
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -191,13 +191,12 @@ function toggleTaskCompletion(taskId) {
       .then(response => {
         if (!response.ok) {
           console.error(`Error: HTTP status ${response.status}`);
-          return response.text(); // Get the raw response text (HTML in case of error)
+          return response.text();
         }
-        return response.json(); // Otherwise, parse it as JSON
+        return response.json();
       })
       .then(data => {
-        if (typeof data === 'string') {
-          // If the response is a string (probably HTML), log it
+        if (typeof data === 'string') {    
           console.error('Received HTML response:', data);
         } else {
           console.log('Task updated:', data);
@@ -365,29 +364,7 @@ function addTask() {
   });
 }
 
-// Function to update the login UI
-function updateLoginUI(isLoggedIn) {
-  const loginButton = document.getElementById('login');
-  const logoutButton = document.getElementById('logout');
 
-  if (isLoggedIn) {
-    loginButton.style.display = 'none';
-    logoutButton.style.display = 'inline-block';
-  } else {
-    loginButton.style.display = 'inline-block';
-    logoutButton.style.display = 'none';
-  }
-}
-
-// Function to log out
-function logout() {
-  chrome.storage.local.remove(['access_token', 'refresh_token'], () => {
-    console.log('Logged out');
-    clearTaskList();
-    updateLoginUI(false); // Update UI to show login button
-    fetchTasks();
-  });
-}
 
 function showMessage(message) {
   const messageElement = document.getElementById('message');
@@ -414,10 +391,23 @@ document.getElementById('login').addEventListener('click', () => {
 });
 document.getElementById('logout').addEventListener('click', logout);
 
+// When the Sign Up button is clicked, show the sign-up form
+document.getElementById('signup').addEventListener('click', () => {
+  document.getElementById('signUpForm').style.display = 'block';
+  document.getElementById('signup').style.display = 'none'; // Hide the Sign Up button
+});
+
+// Cancel Sign Up (Hide the sign-up form and show the Sign Up button again)
+document.getElementById('cancel-signup').addEventListener('click', () => {
+  document.getElementById('signUpForm').style.display = 'none';
+  document.getElementById('signup').style.display = 'block'; // Show the Sign Up button again
+});
+
 document.getElementById('add-task-form').addEventListener('submit', (event) => {
   event.preventDefault(); // Prevent the form from reloading the page
   addTask(); // Call the addTask function to send task data
 });
+
 
 // Fetch tasks when the popup opens
 /*document.addEventListener('DOMContentLoaded', () => {
@@ -427,23 +417,37 @@ document.addEventListener('DOMContentLoaded', function() {
   chrome.storage.local.get('access_token', (result) => {
     if (result.access_token) {
       console.log('User is logged in');
-      showLoggedInState();
+      updateLoginUI(true);
       fetchTasks();
     } else {
       console.log('No token found, please login');
-      showLoggedOutState();
+      updateLoginUI(false);
       clearTaskList();
     }
   });
 });
-// Function to show logged-in state (display logout button)
-function showLoggedInState() {
-  document.getElementById('login').style.display = 'none'; // Hide login button
-  document.getElementById('logout').style.display = 'block'; // Show logout button
+
+
+
+function updateLoginUI(isLoggedIn) {
+  // Show/hide login/logout buttons
+  document.getElementById('login').style.display = isLoggedIn ? 'none' : 'inline-block';
+  document.getElementById('logout').style.display = isLoggedIn ? 'inline-block' : 'none';
+  
+  // Show/hide username section
+  document.getElementById('user-info').style.display = isLoggedIn ? 'inline-block' : 'none';
+  
+  // If the user is logged in, display their username
+  if (isLoggedIn) {
+    chrome.storage.local.get(['username'], (result) => {
+      const username = result.username;
+      if (username) {
+        document.getElementById('username-display').textContent = `${username}`;
+      }
+    });
+  } else {
+    document.getElementById('username-display').textContent = ''; // Clear username when logged out
+  }
 }
 
-// Function to show logged-out state (display login button)
-function showLoggedOutState() {
-  document.getElementById('login').style.display = 'block'; // Show login button
-  document.getElementById('logout').style.display = 'none'; // Hide logout button
-}
+
