@@ -3,6 +3,7 @@ from .models import Task
 from django.contrib.auth.models import User
 
 class TaskSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
     class Meta:
         model = Task
         fields = ['id', 'title', 'description', 'difficulty', 'estimated_duration', 'user', 'created_at', 'completed']

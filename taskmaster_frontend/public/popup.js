@@ -153,10 +153,12 @@ function displayTasks(tasks) {
     taskItem.querySelector('.difficulty').style.color = getDifficultyDetails(task.difficulty).color;
     taskItem.querySelector('.task-description').textContent = task.description;
     taskItem.querySelector('.task-duration').textContent = `Estimated Duration: ${task.estimated_duration} mins`;
-
+    taskItem.querySelector('.task-user').textContent = `Created by: ${task.user}`;
+    
     const statusElement = taskItem.querySelector('.task-status');
     statusElement.textContent = task.completed ? 'Completed' : 'Not Completed';
     statusElement.className = `task-status ${task.completed ? 'completed' : 'not-completed'}`;
+    
 
     // Add data attributes to buttons
     taskItem.querySelector('.complete-btn').dataset.id = task.id;
