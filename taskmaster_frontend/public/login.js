@@ -1,4 +1,4 @@
-document.getElementById('login-form').addEventListener('submit', function(event) {
+/*document.getElementById('login-form').addEventListener('submit', function(event) {
     event.preventDefault();
   
     const username = document.getElementById('username').value;
@@ -35,4 +35,4 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         console.error('Error during login:', error);
       });
   }
-  
+  */

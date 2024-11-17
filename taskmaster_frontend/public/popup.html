@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TaskMaster</title>
-  <link rel="stylesheet" href="popup.css"> <!-- Link to external CSS file -->
+  <link rel="stylesheet" href="popup.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- Font Awesome CDN -->
 </head>
 <body>
@@ -18,8 +18,12 @@
 
   <!-- Login Section -->
   <div id="loginSection">
-    <button id="login"><i class="fas fa-sign-in-alt"></i> Login</button>
-    <button id="logout" style="display: none;"><i class="fas fa-sign-out-alt"></i> Logout</button> <!-- Logout button -->
+    <button id="login" aria-label="Login">
+      <i class="fas fa-sign-in-alt"></i> Login
+    </button>
+    <button id="logout" style="display: none;" aria-label="Logout">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
   </div>
 
   <!-- Add Sign Up Button -->
@@ -35,12 +39,15 @@
 </div>
 
   <!-- Add Task Form -->
-  <form id="add-task-form">
-    <input type="text" id="task-title" placeholder="Task Title" required>
-    <textarea id="task-desc" placeholder="Task Description" required></textarea>
-    <input type="number" id="task-difficulty" placeholder="Difficulty (1-5)" min="1" max="5" required>
-    <input type="number" id="task-duration" placeholder="Estimated Duration (minutes)" min="1" required>
-    <button type="submit" id="submit-btn"><i class="fas fa-plus-circle"></i> Add Task</button> <!-- Add task button with icon -->
+  <form id="add-task-form" aria-labelledby="add-task-form-heading">
+    <h3 id="add-task-form-heading">Add New Task</h3>
+    <input type="text" id="task-title" placeholder="Task Title" required aria-required="true">
+    <textarea id="task-desc" placeholder="Task Description" required aria-required="true"></textarea>
+    <input type="number" id="task-difficulty" placeholder="Difficulty (1-5)" min="1" max="5" required aria-required="true">
+    <input type="number" id="task-duration" placeholder="Estimated Duration (minutes)" min="1" required aria-required="true">
+    <button type="submit" id="submit-btn" aria-label="Add Task">
+      <i class="fas fa-plus-circle"></i> Add Task
+    </button>
   </form>
 
   <!-- Edit Task Form (Hidden initially) -->
@@ -80,9 +87,16 @@
       </div>
     </div>
   </template>
-  
 
-  <script src="popup.js"></script>
-  <script id="signup-script" src="signup.js" defer></script>
+  <!-- Loading tasks -->
+  <div id="loading-message" style="display: none;">
+    Loading tasks, please wait...
+  </div>
+  
+  <script src="ui.js" defer></script>
+  <script src="auth.js" defer></script>
+  <script src="tasks.js" defer></script>
+  <script src="popup.js" defer></script>
+  <script src="signup.js" defer></script>
 </body>
 </html>
