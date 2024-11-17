@@ -20,3 +20,43 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s profile"
+    
+    def add_experience(self, points):
+        # Add experience points and level up if necessary
+        self.experience_points += points
+        while self.experience_points >= 100 * self.level:  # 100 points per level
+            self.level += 1
+        self.save()
+
+    def remove_experience(self, task):
+        # Remove experience points when task is undone
+        difficulty_to_experience = {
+            1: 10,  # Easy: 10 XP
+            2: 20,  # Medium: 20 XP
+            3: 30,  # Hard: 30 XP
+            4: 40,  # Very Hard: 40 XP
+            5: 50,  # Extreme: 50 XP
+        }
+        points_to_remove = difficulty_to_experience.get(task.difficulty, 0)
+        self.experience_points -= points_to_remove
+
+        # Ensure experience points don't go below 0
+        if self.experience_points < 0:
+            self.experience_points = 0
+
+        # Adjust level downwards if experience points are below the threshold
+        while self.experience_points < 100 * (self.level - 1) and self.level > 1:
+            self.level -= 1
+        self.save()
+
+    def complete_task(self, task):
+        # Update the user profile when a task is completed
+        difficulty_to_experience = {
+            1: 10,  # Easy: 10 XP
+            2: 20,  # Medium: 20 XP
+            3: 30,  # Hard: 30 XP
+            4: 40,  # Very Hard: 40 XP
+            5: 50,  # Extreme: 50 XP
+        }
+        points = difficulty_to_experience.get(task.difficulty, 0)
+        self.add_experience(points)

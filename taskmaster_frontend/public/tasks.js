@@ -121,6 +121,29 @@ function addTask() {
       },
       body: JSON.stringify(newTask),
     })
+      .then(response => {
+        if (response.status === 401 && refreshToken) {
+          console.log('Token expired, attempting to refresh...');
+          return refreshToken(refreshToken)
+            .then(newAccessToken => {
+              if (newAccessToken) {
+                // Retry the task creation with the refreshed token
+                return fetch('http://localhost:8000/api/tasks/', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${newAccessToken}`,
+                  },
+                  body: JSON.stringify(newTask),
+                });
+              } else {
+                throw new Error('Unable to refresh token');
+              }
+            });
+        } else {
+          return response;
+        }
+      })
       .then(response => response.json())
       .then(data => {
         console.log('Task added:', data);
@@ -153,6 +176,28 @@ function toggleTaskCompletion(taskId) {
         'Authorization': `Bearer ${token}`,
       },
     })
+    .then(response => {
+      if (response.status === 401 && refreshToken) {
+        console.log('Token expired, attempting to refresh...');
+        return refreshToken(refreshToken)
+          .then(newAccessToken => {
+            if (newAccessToken) {
+              // Retry the task creation with the refreshed token
+              return fetch('http://localhost:8000/api/tasks/${taskId}/toggle/', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${newAccessToken}`,
+                },
+              });
+            } else {
+              throw new Error('Unable to refresh token');
+            }
+          });
+      } else {
+        return response;
+      }
+    })
       .then(response => {
         if (!response.ok) {
           console.error(`Error: HTTP status ${response.status}`);
@@ -165,8 +210,36 @@ function toggleTaskCompletion(taskId) {
           console.error('Received HTML response:', data);
         } else {
           console.log('Task updated:', data);
+
+          // Fetch updated user profile after task completion
+          chrome.storage.local.get('access_token', (result) => {
+            const token = result.access_token;
+            fetch('http://localhost:8000/api/user-profile/', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+              },
+            })
+              .then(response => response.json())
+              .then(profileData => {
+                if (profileData.username) {
+                  // Update the user profile in storage
+                  chrome.storage.local.set({
+                    'level': profileData.level,
+                    'experience_points': profileData.experience_points,
+                  }, () => {
+                    // Update the UI with the new level and experience points
+                    updateLoginUI(true); // Call to update UI
+                    hideMessage();
+                  });
+                } else {
+                  console.error('Failed to fetch user profile');
+                }
+              })
+              .catch(error => console.error('Error fetching user profile:', error));
+          });
+
           fetchTasks(); // Refresh the tasks after completion
-          hideMessage();
         }
       })
       .catch(error => {
@@ -174,6 +247,8 @@ function toggleTaskCompletion(taskId) {
       });
   });
 }
+
+
 
 
 // Function to edit task
@@ -225,6 +300,29 @@ function updateTask(taskId) {
       },
       body: JSON.stringify(updatedTask),
     })
+    .then(response => {
+      if (response.status === 401 && refreshToken) {
+        console.log('Token expired, attempting to refresh...');
+        return refreshToken(refreshToken)
+          .then(newAccessToken => {
+            if (newAccessToken) {
+              // Retry the task creation with the refreshed token
+              return fetch(`http://localhost:8000/api/tasks/${taskId}/`, {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${newAccessToken}`,
+                },
+                body: JSON.stringify(updatedTask),
+              });
+            } else {
+              throw new Error('Unable to refresh token');
+            }
+          });
+      } else {
+        return response;
+      }
+    })
       .then(response => response.json())
       .then(data => {
         console.log('Task updated:', data);
@@ -255,6 +353,29 @@ function deleteTask(taskId) {
         'Authorization': `Bearer ${token}`,
       },
     })
+    .then(response => {
+      if (response.status === 401 && refreshToken) {
+        console.log('Token expired, attempting to refresh...');
+        return refreshToken(refreshToken)
+          .then(newAccessToken => {
+            if (newAccessToken) {
+              // Retry the delete request with the new token
+              return fetch(`http://localhost:8000/api/tasks/${taskId}/`, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': `Bearer ${newAccessToken}`,
+                },
+              });
+            } else {
+              throw new Error('Unable to refresh token');
+            }
+          });
+      } else if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response; // Return the response for further processing
+    })
+    
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -262,7 +383,7 @@ function deleteTask(taskId) {
 
         // Check if there's no content in the response
         if (response.status === 204) {
-          console.log('Task deleted successfully. No content returned.');
+          console.log('Task deleted successfully.');
           fetchTasks(); // Refresh the tasks after deletion
         } else {
           return response.json(); // Parse the response if there is content

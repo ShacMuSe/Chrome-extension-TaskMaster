@@ -12,6 +12,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import UserSerializer
 from rest_framework.exceptions import PermissionDenied
+from .models import UserProfile
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -24,7 +25,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         return Task.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        #Set the user to the current logged-in user
+        # Set the 'user' field of the task to the current logged-in user
         serializer.save(user=self.request.user)
 
     def update(self, request, *args, **kwargs):
@@ -43,8 +44,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         # If the user is the owner, proceed with deletion
         return super().destroy(request, *args, **kwargs)
 
+
 class ToggleTaskCompletionView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
         try:
@@ -53,11 +55,21 @@ class ToggleTaskCompletionView(APIView):
             # Check if the task belongs to the currently authenticated user
             if task.user != request.user:
                 raise PermissionDenied("This is not the owner of the task")  # Raise a permission error if not the owner
-            
+
             # Toggle the task's completion status
             task.completed = not task.completed
             task.save()
-            
+
+            # Get the user profile
+            user_profile = UserProfile.objects.get(user=request.user)
+
+            # If the task is marked as completed, add experience points
+            if task.completed:
+                user_profile.complete_task(task)
+            else:
+                # If the task is marked as incomplete, remove experience points
+                user_profile.remove_experience(task)
+
             return Response({"status": "Task completion toggled"}, status=status.HTTP_200_OK)
 
         except Task.DoesNotExist:
@@ -65,14 +77,32 @@ class ToggleTaskCompletionView(APIView):
         except PermissionDenied as e:
             return Response({"error": str(e)}, status=status.HTTP_403_FORBIDDEN)
 
-@api_view(['POST'])
-def sign_up(request):
-    if request.method == 'POST':
+
+class SignUpView(APIView):
+    def post(self, request):
         # Deserialize the data
         serializer = UserSerializer(data=request.data)
         
         if serializer.is_valid():
             # Save the new user
-            user = serializer.save(password=make_password(request.data['password']))
+            serializer.save(password=make_password(request.data['password']))
             return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
+        
+        # Return errors if the data is invalid
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user_profile = UserProfile.objects.get(user=request.user)
+            return Response({
+                'username': request.user.username,
+                'level': user_profile.level,
+                'experience_points': user_profile.experience_points,
+            })
+        except UserProfile.DoesNotExist:
+            return Response({'error': 'User profile not found'}, status=404)

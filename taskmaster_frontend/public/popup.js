@@ -5,19 +5,19 @@ document.getElementById('login').addEventListener('click', () => {
   login(username, password);
 });
 document.getElementById('logout').addEventListener('click', () => {
-  logout(); // Call logout function when clicked
+  logout();
 });
 
-// When the Sign Up button is clicked, show the sign-up form
+// Show the sign-up form
 document.getElementById('signup').addEventListener('click', () => {
   document.getElementById('signUpForm').style.display = 'block';
-  document.getElementById('signup').style.display = 'none'; // Hide the Sign Up button
+  document.getElementById('signup').style.display = 'none';
 });
 
-// Cancel Sign Up (Hide the sign-up form and show the Sign Up button again)
+// Hide the sign-up form and show the Sign Up button on cancel
 document.getElementById('cancel-signup').addEventListener('click', () => {
   document.getElementById('signUpForm').style.display = 'none';
-  document.getElementById('signup').style.display = 'block'; // Show the Sign Up button again
+  document.getElementById('signup').style.display = 'block';
 });
 
 document.getElementById('add-task-form').addEventListener('submit', (event) => {
@@ -26,10 +26,7 @@ document.getElementById('add-task-form').addEventListener('submit', (event) => {
 });
 
 
-// Fetch tasks when the popup opens
-/*document.addEventListener('DOMContentLoaded', () => {
-  fetchTasks();
-});*/
+// Fetch tasks when the popup opens and update the LoginUI
 document.addEventListener('DOMContentLoaded', function() {
   chrome.storage.local.get('access_token', (result) => {
     if (result.access_token) {

@@ -5,14 +5,13 @@ document.getElementById('submit-signup').addEventListener('click', () => {
     const password = document.getElementById('signup-password').value;
   
     if (username && email && password) {
-      // Call the signup function with the input data
       signup(username, email, password);
     } else {
       alert('All fields are required!');
     }
   });
   
-  // Sign up function (sending data to Django API)
+  // Sign up function
   function signup(username, email, password) {
     fetch('http://127.0.0.1:8000/api/signup/', {
       method: 'POST',
@@ -29,9 +28,8 @@ document.getElementById('submit-signup').addEventListener('click', () => {
     .then(data => {
       if (data.message === 'User created successfully') {
         alert('Sign-up successful! You can now log in.');
-        // Optionally, you can trigger login after successful sign-up or just show the login screen
-        document.getElementById('signUpForm').style.display = 'none';
-        document.getElementById('signup').style.display = 'block'; // Show the Sign Up button again
+        document.getElementById('signUpForm').style.display = 'none'; // Hide the sign up form
+        document.getElementById('signup').style.display = 'block'; // Show the Sign Up button
       } else {
         alert('Sign-up failed: ' + data.message);
       }
