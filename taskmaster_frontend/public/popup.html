@@ -95,11 +95,26 @@
   <div id="loading-message" style="display: none;">
     Loading tasks, please wait...
   </div>
+
+  <!-- Ranking Button -->
+  <button id="ranking-btn">
+    <i class="fas fa-trophy"></i> TOP 3
+  </button>
+
+  <!-- Ranking Modal -->
+  <div id="ranking-page" class="modal">
+    <div class="modal-content">
+      <span id="close-ranking" class="close-btn">&times;</span>
+      <h2>Top 3 Rankings</h2>
+      <ul id="ranking-list"></ul>
+    </div>
+  </div>
   
   <script src="ui.js" defer></script>
   <script src="auth.js" defer></script>
   <script src="tasks.js" defer></script>
   <script src="popup.js" defer></script>
   <script src="signup.js" defer></script>
+  <script src="ranking.js" defer></script>
 </body>
 </html>

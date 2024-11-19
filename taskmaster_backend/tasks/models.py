@@ -60,3 +60,10 @@ class UserProfile(models.Model):
         }
         points = difficulty_to_experience.get(task.difficulty, 0)
         self.add_experience(points)
+        
+    @property
+    def rank(self):
+        # Rank users by experience points in descending order
+        all_profiles = UserProfile.objects.order_by('-experience_points')
+        rank = list(all_profiles).index(self) + 1
+        return rank

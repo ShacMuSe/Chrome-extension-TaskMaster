@@ -183,7 +183,7 @@ function toggleTaskCompletion(taskId) {
           .then(newAccessToken => {
             if (newAccessToken) {
               // Retry the task creation with the refreshed token
-              return fetch('http://localhost:8000/api/tasks/${taskId}/toggle/', {
+              return fetch(`http://localhost:8000/api/tasks/${taskId}/toggle/`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',

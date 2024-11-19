@@ -103,6 +103,24 @@ class UserProfileView(APIView):
                 'username': request.user.username,
                 'level': user_profile.level,
                 'experience_points': user_profile.experience_points,
+                'rank': user_profile.rank,
             })
         except UserProfile.DoesNotExist:
             return Response({'error': 'User profile not found'}, status=404)
+        
+
+class RankingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        profiles = UserProfile.objects.order_by('-experience_points')[:3]  # Top 3 users
+        rankings = [
+            {
+                'rank': idx + 1,
+                'username': profile.user.username,
+                'level': profile.level,
+                'experience_points': profile.experience_points,
+            }
+            for idx, profile in enumerate(profiles)
+        ]
+        return Response(rankings)
