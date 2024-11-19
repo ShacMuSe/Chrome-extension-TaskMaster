@@ -1,5 +1,5 @@
 # TaskMaster
-# Fonctionnalités
+# Fonctionnalités:
 
 -Gestion des tâches : Ajoutez, modifiez, supprimez et marquez comme complètes des tâches facilement.
 
