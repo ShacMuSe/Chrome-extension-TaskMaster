@@ -1,12 +1,12 @@
 # TaskMaster
-# Fonctionnalités:
+# Features: 
 
--Gestion des tâches : Ajoutez, modifiez, supprimez et marquez comme complètes des tâches facilement.
+-Task management: Easily add, modify, delete and mark as complete tasks. 
 
--Estimation de la difficulté et du temps : Définissez une difficulté et une durée estimée pour chaque tâche.
+-Estimated difficulty and time: Set an estimated difficulty and time for each task. 
 
--Système de connexion : Créez un compte utilisateur et connectez-vous avec un identifiant et un mot de passe.
+-Login system: Create a user account and log in with a username and password. 
 
--Mécanique RPG : Gagnez des points d'expérience et montez de niveau en fonction des tâches accomplies.
+-RPG mechanics: Earn experience points and level up based on tasks completed. 
 
--Système de classement : Affichez le top 3 des utilisateurs en fonction des points d'expérience accumulés.
+-Ranking system: Display the top 3 users based on accumulated experience points. 
