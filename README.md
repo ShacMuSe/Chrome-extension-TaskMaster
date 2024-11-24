@@ -1,7 +1,7 @@
 # TaskMaster
 # Features: 
 
--Task management: Easily add, modify, delete and mark as complete tasks. 
+-Task management: add, modify, delete and mark as complete tasks. 
 
 -Estimated difficulty and time: Set an estimated difficulty and time for each task. 
 
